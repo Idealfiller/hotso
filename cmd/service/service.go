@@ -313,6 +313,7 @@ func index(c *gin.Context) {
 }
 func main() {
 	serviceCfg := config.GetConfig().Service
+
 	router := gin.Default()
 	router.Static("/css", "./statics/css")
 	router.Static("/js", "./statics/js")
@@ -325,7 +326,7 @@ func main() {
 		v1.GET("/hotword/:hottype/:year/:num", GetHotWordData)
 		v1.GET("/hottop/:hottype/:year/:num", GetHotTopData)
 	}
-	router.GET("/", index)
+	router.GET("/index", index)
 	addr := fmt.Sprintf("%s:%d", serviceCfg.IP, serviceCfg.Port)
 	router.Run(addr)
 }
