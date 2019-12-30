@@ -308,15 +308,24 @@ func GetHotType(c *gin.Context) {
 	ResponIndentJSON(c, http.StatusOK, data)
 }
 
+func index(c *gin.Context) {
+	c.HTML(http.StatusOK, "index.html", nil)
+}
 func main() {
 	serviceCfg := config.GetConfig().Service
 	router := gin.Default()
+	router.Static("/css", "./statics/css")
+	router.Static("/js", "./statics/js")
+	router.StaticFile("title.png", "./statics/title.png")
+	router.LoadHTMLGlob("./statics/views/*")
+
 	v1 := router.Group("hotso/v1")
 	{
 		v1.GET("/hotso/:hottype/:num", GetHotType) //  http://ip:port/weibo/json/10   获取微博热搜10条数据，并以json方式返回
 		v1.GET("/hotword/:hottype/:year/:num", GetHotWordData)
 		v1.GET("/hottop/:hottype/:year/:num", GetHotTopData)
 	}
+	router.GET("/", index)
 	addr := fmt.Sprintf("%s:%d", serviceCfg.IP, serviceCfg.Port)
 	router.Run(addr)
 }
