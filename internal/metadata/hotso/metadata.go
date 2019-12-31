@@ -28,6 +28,16 @@ var HotSoType = map[int]string{
 	V2EX:   "V2EX",
 }
 
+//HotSoTypeName ...
+var HotSoTypeName = map[int]string{
+	WEIBO:  "微博",
+	BAIDU:  "百度",
+	ZHIHU:  "知乎",
+	SHUIMU: "水木",
+	TIANYA: "天涯",
+	V2EX:   "V2EX",
+}
+
 //HotItem ...
 type HotItem struct {
 	Reading string `json:"reading"`

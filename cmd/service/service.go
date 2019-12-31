@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -293,32 +295,74 @@ func GetHotType(c *gin.Context) {
 		data = GetV2EXData(num)
 	default:
 	}
-	// switch c.Param("data_type") {
-	// case "json":
-	// 	//c.JSON(http.StatusOK, data)
-	// 	ResponIndentJSON(c, http.StatusOK, data)
-	// // case "protobuf":
-	// default:
-	// 	c.JSON(http.StatusOK, gin.H{
-	// 		"hottype": c.Param("hottype"),
-	// 		"type":    c.Param("data_type"),
-	// 		"num":     c.Param("num"),
-	// 	})
-	// }
 	ResponIndentJSON(c, http.StatusOK, data)
 }
 
 func index(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", nil)
+	c.HTML(http.StatusOK, "hot.html", nil)
 }
+
+func about(c *gin.Context) {
+	c.HTML(http.StatusOK, "about.html", nil)
+}
+
+//GetType ...
+func GetType(c *gin.Context) {
+	var list []map[string]interface{}
+	var keys []int
+	for k := range hotso.HotSoTypeName {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	for _, k := range keys {
+		data := make(map[string]interface{})
+		data["id"] = k
+		data["name"] = hotso.HotSoTypeName[k]
+		list = append(list, data)
+	}
+	fmt.Println(list)
+	c.JSON(http.StatusOK, list)
+}
+
+//TypeInfo ...
+func TypeInfo(c *gin.Context) {
+	id := c.Query("id")
+	fmt.Println(id)
+	idNum, _ := strconv.Atoi(id)
+	if _, ok := hotso.HotSoType[idNum]; ok != true {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 1,
+		})
+	}
+	query := strings.ToLower(hotso.HotSoType[idNum])
+	num := 50
+	var data *hotso.HotData
+	switch query {
+	case "weibo":
+		data = GetWeiBoData(num)
+	case "baidu":
+		data = GetBaiDuData(num)
+	case "zhihu":
+		data = GetZhiHuData(num)
+	case "shuimu":
+		data = GetShuiMuData(num)
+	case "tianya":
+		data = GetTianYaData(num)
+	case "v2ex":
+		data = GetV2EXData(num)
+	default:
+	}
+	c.JSON(http.StatusOK, data)
+}
+
 func main() {
 	serviceCfg := config.GetConfig().Service
 
 	router := gin.Default()
-	router.Static("/css", "./statics/css")
-	router.Static("/js", "./statics/js")
-	router.StaticFile("title.png", "./statics/title.png")
-	router.LoadHTMLGlob("./statics/views/*")
+	router.Static("/css/", "./static/css/")
+	router.Static("/js/", "./static/js/")
+	router.StaticFile("title.png", "./static/title.png")
+	router.LoadHTMLGlob("./static/view/*")
 
 	v1 := router.Group("hotso/v1")
 	{
@@ -326,7 +370,10 @@ func main() {
 		v1.GET("/hotword/:hottype/:year/:num", GetHotWordData)
 		v1.GET("/hottop/:hottype/:year/:num", GetHotTopData)
 	}
-	router.GET("/index", index)
+	router.GET("/typeinfo", TypeInfo)
+	router.GET("/type", GetType)
+	router.GET("/hot", index)
+	router.GET("/about", about)
 	addr := fmt.Sprintf("%s:%d", serviceCfg.IP, serviceCfg.Port)
 	router.Run(addr)
 }
